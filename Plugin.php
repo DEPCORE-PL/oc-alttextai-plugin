@@ -1,6 +1,9 @@
 <?php namespace Depcore\AltTextAi;
 
 use Backend;
+use Depcore\AltTextAi\Classes\AltTextApi;
+use Event;
+use Media\Widgets\MediaManager;
 use System\Classes\PluginBase;
 
 /**
@@ -28,7 +31,10 @@ class Plugin extends PluginBase
      */
     public function register()
     {
-        //
+        Event::listen('media.file.upload', function (MediaManager $mediaWidget, string &$path, \Symfony\Component\HttpFoundation\File\UploadedFile $uploadedFile) {
+            $uploadedFile->
+            debug((new AltTextApi())->generateFromFile($path));
+        });
     }
 
     /**

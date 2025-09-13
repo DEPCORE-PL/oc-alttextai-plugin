@@ -1,0 +1,6 @@
+tabs:
+    fields:
+        merchant_id:
+            label: Merchant ID
+            type: number
+            required: true
