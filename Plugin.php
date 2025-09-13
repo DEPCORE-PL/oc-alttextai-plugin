@@ -2,6 +2,7 @@
 
 use Backend;
 use System\Classes\PluginBase;
+use System\Models\File;
 
 /**
  * Plugin Information File
@@ -28,7 +29,16 @@ class Plugin extends PluginBase
      */
     public function register()
     {
-        //
+        File::extend(function (File $model) {
+            $model->bindEvent('model.beforeCreate', function () use ($model) {
+                if (count($model->description)==0) {
+                    $file = $model->getPath();
+                    //TODO: Call the ai api
+                    $description = "";
+                    $model->description = $description;
+                }
+            });
+        });
     }
 
     /**
