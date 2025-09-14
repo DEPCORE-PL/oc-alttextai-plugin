@@ -1,6 +1,7 @@
 <?php namespace Depcore\AltTextAi;
 
 use Backend;
+use Depcore\AltTextAi\Classes\AltTextApi;
 use System\Classes\PluginBase;
 use System\Models\File;
 
@@ -29,13 +30,13 @@ class Plugin extends PluginBase
      */
     public function register()
     {
+        include_once __DIR__ . '/routes.php';
+
         File::extend(function (File $model) {
             $model->bindEvent('model.beforeCreate', function () use ($model) {
                 if (count($model->description)==0) {
-                    $file = $model->getPath();
-                    //TODO: Call the ai api
-                    $description = "";
-                    $model->description = $description;
+                    (new AltTextApi())->promptGeneration($model);
+
                 }
             });
         });
@@ -46,7 +47,6 @@ class Plugin extends PluginBase
      */
     public function boot()
     {
-        //
     }
 
     /**

@@ -1,0 +1,6 @@
+tabs:
+    fields:
+        apiKey:
+            label: Api Key
+            type: string
+            required: true
