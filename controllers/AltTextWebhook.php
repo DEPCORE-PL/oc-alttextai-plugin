@@ -1,9 +1,8 @@
 <?php namespace Depcore\AltTextAi\Controllers;
 
-use BackendMenu;
 use Backend\Classes\Controller;
 use Depcore\AltTextAi\Classes\AltTextApi;
-use Depcore\TPayProcessor\Models\AltTextSettings;
+use Depcore\AltTextAi\Models\AltTextSettings;
 use Illuminate\Http\Request;
 use Log;
 use System\Models\File;

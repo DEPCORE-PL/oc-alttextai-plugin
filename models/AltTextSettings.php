@@ -1,4 +1,4 @@
-<?php namespace Depcore\TPayProcessor\Models;
+<?php namespace Depcore\AltTextAi\Models;
 
 use Model;
 

@@ -1,7 +1,8 @@
 <?php namespace Depcore\AltTextAi;
 
-use Backend;
 use Depcore\AltTextAi\Classes\AltTextApi;
+use Depcore\AltTextAi\Models\AltTextSettings;
+use Log;
 use System\Classes\PluginBase;
 use System\Models\File;
 
@@ -33,8 +34,8 @@ class Plugin extends PluginBase
         include_once __DIR__ . '/routes.php';
 
         File::extend(function (File $model) {
-            $model->bindEvent('model.beforeCreate', function () use ($model) {
-                if (count($model->description)==0) {
+            $model->bindEvent('model.afterCreate', function () use ($model) {
+                if (!property_exists($model, "description") || count($model->description) == 0) {
                     (new AltTextApi())->promptGeneration($model);
 
                 }
@@ -91,6 +92,18 @@ class Plugin extends PluginBase
                 'permissions' => ['depcore.alttextai.*'],
                 'order' => 500,
             ],
+        ];
+    }
+
+    public function registerSettings()
+    {
+        return [
+            'settings' => [
+                'label' => 'Altext Settings',
+                'description' => 'Manage altext.ai generation settings.',
+                'icon' => 'icon-image',
+                'class' => AltTextSettings::class,
+            ]
         ];
     }
 }

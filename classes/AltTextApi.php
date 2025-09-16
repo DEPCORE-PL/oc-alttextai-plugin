@@ -3,9 +3,10 @@
 namespace Depcore\AltTextAi\Classes;
 
 use Config;
-use Depcore\TPayProcessor\Models\AltTextSettings;
+use Depcore\AltTextAi\Models\AltTextSettings;
 use Illuminate\Support\Facades\Http;
 use October\Rain\Exception\ApplicationException;
+use Storage;
 use System\Models\File;
 
 /**
@@ -39,9 +40,12 @@ class AltTextApi
     }
     public function promptGeneration(File $file)
     {
+        $content = Storage::get($file->getPath());
+        $base64 = base64_encode($content);
+
         $response = Http::withHeaders([
             'Accept' => 'application/json',
-            'X-API-Key' => $this->apiKey, // optional
+            'X-Api-Key' => $this->apiKey, // optional
         ])->post($this->baseUrl . '/images', [
             'image'=>[
                 'url' => $file->getUrl(),
@@ -54,7 +58,7 @@ class AltTextApi
                 'async' => true,
             ]
         ]);
-
+        debug($response->json());
         if ($response->successful()) {
             return true;
         }else {

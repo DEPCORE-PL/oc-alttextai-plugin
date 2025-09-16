@@ -2,5 +2,5 @@ tabs:
     fields:
         apiKey:
             label: Api Key
-            type: string
+            type: text
             required: true
