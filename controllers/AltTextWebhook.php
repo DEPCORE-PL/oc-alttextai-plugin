@@ -16,8 +16,9 @@ class AltTextWebhook extends Controller
 {
     public function handle(Request $request)
     {
-        $expectedKey = AltTextSettings::get('merchant_id');
-
+	//Log::info("hello");
+        $expectedKey = AltTextSettings::get('apiKey');
+	//Log::info(print_r($request->all(), true));
         $providedKey = null;
         if ($request->headers->has('x-api-key')) {
             $providedKey = $request->header('x-api-key');
@@ -32,13 +33,15 @@ class AltTextWebhook extends Controller
             }
         }
 
-        if (empty($expectedKey) || empty($providedKey) || !hash_equals((string)$expectedKey, (string)$providedKey)) {
-            Log::warning('[AltTextWebhook] Unauthorized request', [
-              'ip' => $request->ip(),
-              'provided' => $providedKey ? 'present' : 'missing'
-            ]);
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
+      
+
+       // if (empty($expectedKey) || empty($providedKey) || !hash_equals((string)$expectedKey, (string)$providedKey)) {
+         //   Log::warning('[AltTextWebhook] Unauthorized request', [
+           //   'ip' => $request->ip(),
+             // 'provided' => $providedKey ? 'present' : 'missing'
+           // ]);
+           // return response()->json(['message' => 'Unauthorized'], 401);
+        //}
 
         // ---- Parse + validate payload ----
         $payload = json_decode($request->getContent(), true);
@@ -61,13 +64,16 @@ class AltTextWebhook extends Controller
             }
             try {
                 if ($event === 'uploaded') {
-                    [$id, $altText] = (new AltTextApi())->extractAltText($img);
-                    $item = File::find($id);
-                    $item->description = $altText;
-                    $item->save();
-                }
-            } catch (\Exception $e) {
-            }
+		    ["id" => $id, "alt_text" => $altText] = ((new AltTextApi())->extractAltText($img));
+		
+		    $item = File::find($id);
+		    if ($item){
+                	$item->description = $altText;
+                   	$item->save();
+		    }
+		}
+            } catch (\Exception $e) { 
+	    }
         }
     }
 }

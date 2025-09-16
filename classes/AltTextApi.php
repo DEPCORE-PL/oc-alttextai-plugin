@@ -49,16 +49,23 @@ class AltTextApi
         ])->post($this->baseUrl . '/images', [
             'image'=>[
                 'url' => $file->getUrl(),
-                'webhook_url' => Config::get('app.url') . "/altext/webhook/",
+		//Config::get('app.url') . "/altext/webhook/",
                 'metadata' => [
                     'oc_website' => \Config::get('app.url'),
                     'oc_hostname' => gethostname(),
                     'oc_file_id' => $file->id
-                ],
-                'async' => true,
-            ]
+	    	]
+  	    ],
+	    'webhook_url' => Config::get('app.url') . "/altext/webhook",
+	    'async' => true,
+            
         ]);
-        debug($response->json());
+        if (function_exists('debug')) {
+            debug($response->json());
+	}
+	//\Log::debug(Config::get('app.url') . "/altext/webhook/");
+	//\Log::debug(($response->json()));
+	//Log::info("sending {$file->getUrl()} to api");
         if ($response->successful()) {
             return true;
         }else {
