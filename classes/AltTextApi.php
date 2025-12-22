@@ -10,34 +10,59 @@ use Storage;
 use System\Models\File;
 
 /**
- * AltTextApi
+ * AltText.ai API Client
  *
- * Uses AltTextSettings::getApiKey() by default to find the API key.
+ * Provides integration with the AltText.ai service for automatic
+ * generation of alt text descriptions for images using AI.
+ *
+ * @package Depcore\AltTextAi\Classes
+ * @link https://alttext.ai/api/v1
  */
 class AltTextApi
 {
+    /**
+     * AltText.ai API key
+     *
+     * @var string|null
+     */
     protected ?string $apiKey;
+
+    /**
+     * Base URL for the AltText.ai API
+     *
+     * @var string
+     */
     protected string $baseUrl;
 
     /**
-     * Constructor.
+     * Constructor - Initialize API client
      *
-     * @param string|null $apiKey Provide API key directly or leave null to read from settings/env/config.
-     * @param string|null $baseUrl Optional base URL (defaults to https://alttext.ai/api/v1).
+     * Retrieves the API key from plugin settings and configures the base URL.
      *
-     * @throws ApplicationException if API key not provided/found.
+     * @param string|null $baseUrl Optional base URL (defaults to https://alttext.ai/api/v1)
+     * @throws ApplicationException if API key is not configured in plugin settings
      */
     public function __construct(?string $baseUrl = null)
     {
-        // Priority: explicit param -> plugin settings -> env -> config
+        // Retrieve API key from plugin settings
         $this->apiKey = AltTextSettings::instance()->apiKey;
 
         if (empty($this->apiKey)) {
-            throw new ApplicationException('AltText API key not configured. Set it in plugin settings or pass it to the constructor.');
+            throw new ApplicationException('AltText API key not configured. Set it in plugin settings.');
         }
 
         $this->baseUrl = rtrim($baseUrl ?: 'https://alttext.ai/api/v1', '/');
     }
+    /**
+     * Request alt text generation for a file
+     *
+     * Sends an image to AltText.ai API for asynchronous alt text generation.
+     * The API will process the image and send results back to the webhook endpoint.
+     * Metadata is included to verify webhook authenticity.
+     *
+     * @param File $file The OctoberCMS File model instance to generate alt text for
+     * @return bool True if request was successful, false otherwise
+     */
     public function promptGeneration(File $file)
     {
         $content = Storage::get($file->getPath());
@@ -45,51 +70,71 @@ class AltTextApi
 
         $response = Http::withHeaders([
             'Accept' => 'application/json',
-            'X-Api-Key' => $this->apiKey, // optional
+            'X-Api-Key' => $this->apiKey,
         ])->post($this->baseUrl . '/images', [
-            'image'=>[
+            'image' => [
                 'url' => $file->getUrl(),
-		//Config::get('app.url') . "/altext/webhook/",
                 'metadata' => [
                     'oc_website' => \Config::get('app.url'),
                     'oc_hostname' => gethostname(),
                     'oc_file_id' => $file->id
-	    	]
-  	    ],
-	    'webhook_url' => Config::get('app.url') . "/altext/webhook",
-	    'async' => true,
-            
+                ]
+            ],
+            'webhook_url' => Config::get('app.url') . "/altext/webhook",
+            'async' => true,
         ]);
-        if (function_exists('debug')) {
-            debug($response->json());
-	}
-	//\Log::debug(Config::get('app.url') . "/altext/webhook/");
-	//\Log::debug(($response->json()));
-	//Log::info("sending {$file->getUrl()} to api");
+
         if ($response->successful()) {
             return true;
-        }else {
+        } else {
             return false;
         }
     }
 
+    /**
+     * Verify webhook destination matches this OctoberCMS instance
+     *
+     * Validates that a webhook payload's metadata matches this instance's
+     * website URL and hostname to prevent processing webhooks intended
+     * for other installations.
+     *
+     * @param array $metadata The metadata array from the webhook payload
+     * @return bool True if metadata matches this instance, false otherwise
+     */
     public function verifyDestination(array $metadata)
     {
-        if ($metadata['oc_website'] == \Config::get('app.url') &&
-        $metadata['oc_hostname'] == gethostname()) {
+        if (isset($metadata['oc_website']) && isset($metadata['oc_hostname']) &&
+            $metadata['oc_website'] == \Config::get('app.url') &&
+            $metadata['oc_hostname'] == gethostname()) {
             return true;
         }
         return false;
     }
 
+    /**
+     * Extract alt text data from webhook image payload
+     *
+     * Parses the webhook image payload and extracts the file ID and
+     * generated alt text. Verifies the payload is intended for this instance.
+     *
+     * @param array $imagePayload The image data from webhook payload
+     * @return array|null Array with 'id' and 'alt_text' keys, or null if verification fails
+     */
     public function extractAltText(array $imagePayload)
     {
-        $thisServer = $this->verifyDestination($imagePayload['metadata']);
-        if (!$thisServer) {
-            return;
+        // Verify this webhook is for our instance
+        if (!isset($imagePayload['metadata']) || !$this->verifyDestination($imagePayload['metadata'])) {
+            return null;
         }
-        $id = $imagePayload['metadata']['oc_file_id'];
-        $alt_text = $imagePayload["alt_text"];
+
+        // Extract file ID and alt text
+        $id = $imagePayload['metadata']['oc_file_id'] ?? null;
+        $alt_text = $imagePayload['alt_text'] ?? '';
+
+        if (!$id) {
+            return null;
+        }
+
         return [
             'id' => $id,
             'alt_text' => $alt_text,

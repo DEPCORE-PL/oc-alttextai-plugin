@@ -1,0 +1,50 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # Required to push to the repo
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true # Required for committing back
+
+      - name: Install dependencies
+        run: make phpdoc_install
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+
+      - name: Clean old docs
+        run: |
+          rm -rf docs/api
+          mkdir -p docs/api
+
+      - name: Generate PHPDoc
+        run: make phpdoc_make
+
+      - name: Commit and push generated docs
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+          git add docs/api
+
+          # Check if there's anything to commit
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(docs): update PHPDoc [automated]"
+            git push
+          else
+            echo "No documentation changes to commit."
+          fi

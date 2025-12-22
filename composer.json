@@ -4,5 +4,15 @@
     "description": "No description provided yet...",
     "require": {
         "composer/installers": "~1.0"
+    },
+    "require-dev": {
+        "saggre/phpdocumentor-markdown": "^1.0",
+        "phpdocumentor/shim": "^3.9"
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "phpdocumentor/shim": true
+        }
     }
 }

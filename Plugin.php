@@ -7,102 +7,123 @@ use System\Classes\PluginBase;
 use System\Models\File;
 
 /**
- * Plugin Information File
+ * AltText.ai Plugin for OctoberCMS
  *
+ * Automatically generates alt text descriptions for uploaded images
+ * using the AltText.ai API service powered by AI.
+ *
+ * This plugin extends the OctoberCMS File model to automatically
+ * request alt text generation when new files are created.
+ *
+ * @package Depcore\AltTextAi
+ * @author Depcore
  * @link https://docs.octobercms.com/3.x/extend/system/plugins.html
+ * @link https://alttext.ai
  */
 class Plugin extends PluginBase
 {
     /**
-     * pluginDetails about this plugin.
+     * Returns information about this plugin
+     *
+     * @return array Plugin details including name, description, author and icon
      */
     public function pluginDetails()
     {
         return [
             'name' => 'AltTextAi',
-            'description' => 'No description provided yet...',
+            'description' => 'Automatically generates alt text for images using AltText.ai API service.',
             'author' => 'Depcore',
-            'icon' => 'icon-leaf'
+            'icon' => 'icon-image'
         ];
     }
 
     /**
-     * register method, called when the plugin is first registered.
+     * Register plugin components and event listeners
+     *
+     * Sets up the webhook route and extends the File model
+     * to automatically trigger alt text generation on file creation.
+     *
+     * @return void
      */
     public function register()
     {
+        // Register webhook routes
         include_once __DIR__ . '/routes.php';
 
+        // Extend File model to auto-generate alt text
         File::extend(function (File $model) {
             $model->bindEvent('model.afterCreate', function () use ($model) {
-                if (!property_exists($model, "description") || count($model->description) == 0) {
-                    (new AltTextApi())->promptGeneration($model);
-
+                // Only generate alt text if description is empty
+                if (!property_exists($model, "description") || empty($model->description)) {
+                    try {
+                        (new AltTextApi())->promptGeneration($model);
+                    } catch (\Exception $e) {
+                        Log::error('AltText.ai generation request failed', [
+                            'file_id' => $model->id,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
                 }
             });
         });
     }
 
     /**
-     * boot method, called right before the request route.
+     * Boot method, called right before the request route
+     *
+     * @return void
      */
     public function boot()
     {
     }
 
     /**
-     * registerComponents used by the frontend.
+     * Register frontend components
+     *
+     * @return array Empty array - no frontend components provided
      */
     public function registerComponents()
     {
-        return []; // Remove this line to activate
-
-        return [
-            'Depcore\AltTextAi\Components\MyComponent' => 'myComponent',
-        ];
+        return [];
     }
 
     /**
-     * registerPermissions used by the backend.
+     * Register backend permissions
+     *
+     * @return array Empty array - no custom permissions required
      */
     public function registerPermissions()
     {
-        return []; // Remove this line to activate
-
-        return [
-            'depcore.alttextai.some_permission' => [
-                'tab' => 'AltTextAi',
-                'label' => 'Some permission'
-            ],
-        ];
+        return [];
     }
 
     /**
-     * registerNavigation used by the backend.
+     * Register backend navigation items
+     *
+     * @return array Empty array - no navigation items added
      */
     public function registerNavigation()
     {
-        return []; // Remove this line to activate
-
-        return [
-            'alttextai' => [
-                'label' => 'AltTextAi',
-                'url' => Backend::url('depcore/alttextai/mycontroller'),
-                'icon' => 'icon-leaf',
-                'permissions' => ['depcore.alttextai.*'],
-                'order' => 500,
-            ],
-        ];
+        return [];
     }
 
+    /**
+     * Register plugin settings
+     *
+     * Adds AltText.ai settings page to the backend Settings area
+     * where administrators can configure the API key.
+     *
+     * @return array Settings configuration array
+     */
     public function registerSettings()
     {
         return [
             'settings' => [
-                'label' => 'Altext Settings',
-                'description' => 'Manage altext.ai generation settings.',
+                'label' => 'AltText.ai Settings',
+                'description' => 'Configure AltText.ai API key and image alt text generation settings.',
                 'icon' => 'icon-image',
                 'class' => AltTextSettings::class,
+                'category' => 'CMS',
             ]
         ];
     }
