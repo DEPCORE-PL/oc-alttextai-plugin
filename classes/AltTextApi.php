@@ -65,9 +65,6 @@ class AltTextApi
      */
     public function promptGeneration(File $file)
     {
-        $content = Storage::get($file->getPath());
-        $base64 = base64_encode($content);
-
         $response = Http::withHeaders([
             'Accept' => 'application/json',
             'X-Api-Key' => $this->apiKey,
