@@ -50,6 +50,9 @@ class Plugin extends PluginBase
         // Register webhook routes
         include_once __DIR__ . '/routes.php';
 
+        // Register bulk console cmd
+        $this->registerConsoleCommand('Depcore.BulkUpdate', \Depcore\AltTextAi\Console\BulkUpdate::class);
+
         // Extend File model to auto-generate alt text
         File::extend(function (File $model) {
             $model->bindEvent('model.afterCreate', function () use ($model) {

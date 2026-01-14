@@ -48,6 +48,38 @@ Add instructions to customize how the AI writes. Examples:
 
 Leave blank for standard descriptions.
 
+## Bulk Update Command
+
+Generate alt text for existing images that were uploaded before the plugin was installed.
+
+**Requirements:**
+- Your site must be publicly accessible on the internet
+- `APP_URL` in `.env` must match your domain exactly
+- Site must have a valid SSL certificate
+
+### Usage
+
+```bash
+php artisan alttextai:bulkupdate
+```
+
+### With Date Range
+
+Generate alt text only for images uploaded between specific dates:
+
+```bash
+php artisan alttextai:bulkupdate 2025-01-01 2025-12-31
+```
+
+The command will:
+1. Find all images without descriptions
+2. Filter by date range (if provided)
+3. Exit if no images found
+4. Ask for confirmation before processing
+5. Send images to AltText.ai for processing
+
+Descriptions will be updated asynchronously via webhook after 10-30 seconds. All existing images get alt text without interfering with new uploads.
+
 ## Checking It Works
 
 Upload a test image. After 10-30 seconds, check if it has a description:
