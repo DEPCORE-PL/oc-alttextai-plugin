@@ -19,6 +19,14 @@ This is an automatically generated documentation for **Documentation**.
 |----------------------------------------------------------------|-----------------------|
 | [`AltTextApi`](./classes/Depcore/AltTextAi/Classes/AltTextApi) | AltText.ai API Client |
 
+### \Depcore\AltTextAi\Console
+
+#### Classes
+
+| Class                                                          | Description         |
+|----------------------------------------------------------------|---------------------|
+| [`BulkUpdate`](./classes/Depcore/AltTextAi/Console/BulkUpdate) | Bulk Update Command |
+
 ### \Depcore\AltTextAi\Controllers
 
 #### Classes
