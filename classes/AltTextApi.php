@@ -77,7 +77,7 @@ class AltTextApi
                     'oc_file_id' => $file->id
                 ]
             ],
-            'webhook_url' => Config::get('app.url') . "/altext/webhook",
+            'webhook_url' => rtrim(Config::get('app.url'), '/') . '/altext/webhook',
             'async' => true,
         ]);
 
