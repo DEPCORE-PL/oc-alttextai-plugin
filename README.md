@@ -36,7 +36,7 @@ Install via OctoberCMS marketplace or copy to `plugins/depcore/alttextai/`
 2. Paste your API key
 3. Click **Save**
 
-### 4. Set Webhook URL
+### 4. Set Webhook URL (optional)
 
 In your AltText.ai account settings, set webhook URL to:
 ```
